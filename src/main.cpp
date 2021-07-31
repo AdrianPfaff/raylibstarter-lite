@@ -3,10 +3,22 @@
 #include "raylib.h"
 
 #include "config.h"
-#include "helper.h"
-#include "game.h"
 
-Game::Screen* currentScreen;
+
+#define MAX(a, b) ((a)>(b)? (a) : (b))
+#define MIN(a, b) ((a)<(b)? (a) : (b))
+
+// Clamp Vector2 value with MIN and MAX and return a new vector2
+// NOTE: Required for virtual mouse, to clamp inside virtual game size
+Vector2 ClampValue(Vector2 value, Vector2 MIN, Vector2 MAX) {
+    Vector2 result = value;
+    result.x = (result.x > MAX.x) ? MAX.x : result.x;
+    result.x = (result.x < MIN.x) ? MIN.x : result.x;
+    result.y = (result.y > MAX.y) ? MAX.y : result.y;
+    result.y = (result.y < MIN.y) ? MIN.y : result.y;
+    return result;
+}
+
 
 int main() {
     // Enable config flags for resizable window and vertical synchro
@@ -25,8 +37,7 @@ int main() {
     ToggleFullscreen();
 #endif
 
-    // Set start screen
-    currentScreen = Game::MenuScreen::getInstance();
+
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -44,15 +55,13 @@ int main() {
         virtualMouse = ClampValue(virtualMouse, {0, 0}, {static_cast<float>(Game::ScreenWidth),
                                                          static_cast<float>(Game::ScreenHeight)});
 
-        currentScreen->ProcessInput();
-        currentScreen->Update();
 
         BeginDrawing();
         ClearBackground(BLACK); // Letterbox color
 
         // Draw everything in the render texture, note this will not be rendered on screen, yet
         BeginTextureMode(target);
-        currentScreen->Draw();
+
         EndTextureMode();
 
         // Draw RenderTexture2D to window, properly scaled
